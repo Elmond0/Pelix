@@ -1,22 +1,18 @@
 import express, { Request, Response } from 'express';
-import cors from 'cors';
-import morgan from 'morgan';
 import { config } from './config/config';
+import { corsMiddleware } from './middleware/corsConfig';
 import { errorHandler } from './middleware/errorHandler';
 import { notFoundHandler } from './middleware/notFoundHandler';
+import requestLogger from './middleware/requestLogger';
+import logger from './utils/logger';
 
 const app = express();
 
 // Middleware globali
-app.use(
-  cors({
-    origin: config.corsOrigin,
-    credentials: true,
-  }),
-);
+app.use(corsMiddleware);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan(config.nodeEnv === 'production' ? 'combined' : 'dev'));
+app.use(requestLogger);
 
 // Rotte
 app.get('/', (_req: Request, res: Response) => {
@@ -36,6 +32,16 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
+// TODO: Rotte API (verranno aggiunte nelle fasi successive)
+// app.use('/api/auth', authRoutes);
+// app.use('/api/profiles', profileRoutes);
+// app.use('/api/movies', movieRoutes);
+// app.use('/api/series', seriesRoutes);
+// app.use('/api/catalog', catalogRoutes);
+// app.use('/api/search', searchRoutes);
+// app.use('/api/stream', streamRoutes);
+// app.use('/api/admin', adminRoutes);
+
 // Gestione errori
 app.use(notFoundHandler);
 app.use(errorHandler);
@@ -43,14 +49,22 @@ app.use(errorHandler);
 // Avvio server
 const PORT = config.port;
 app.listen(PORT, () => {
-  console.log('');
-  console.log('================================');
-  console.log('  Pelix API Server');
-  console.log('  Ambiente:  ' + config.nodeEnv);
-  console.log('  Porta:     ' + PORT);
-  console.log('  URL:       http://localhost:' + PORT);
-  console.log('================================');
-  console.log('');
+  logger.info('================================');
+  logger.info('  Pelix API Server');
+  logger.info(`  Ambiente:  ${config.nodeEnv}`);
+  logger.info(`  Porta:     ${PORT}`);
+  logger.info(`  URL:       http://localhost:${PORT}`);
+  logger.info('================================');
+});
+
+// Gestione errori non catturati
+process.on('unhandledRejection', (reason: Error) => {
+  logger.error('Unhandled Rejection:', reason);
+});
+
+process.on('uncaughtException', (error: Error) => {
+  logger.error('Uncaught Exception:', error);
+  process.exit(1);
 });
 
 export default app;

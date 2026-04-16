@@ -4,7 +4,7 @@
 
 ## Piano di Lavoro Completo e Dettagliato
 
----
+FATTO!!!!!
 
 ## FASE 0 — SETUP AMBIENTE DI SVILUPPO
 
@@ -21,7 +21,7 @@
 | 0.9 | Creare la struttura cartelle del progetto monorepo | Cartella root con `/frontend`, `/backend`, `/shared`, `/scripts`, `/docs` |
 | 0.10 | Inizializzare il repository Git | Primo commit con `.gitignore`, `README.md`, struttura base |
 
----
+FATTO!!!!!
 
 ## FASE 1 — BACKEND: SETUP INIZIALE
 
