@@ -1,0 +1,536 @@
+
+
+# 📋 MASTERPLAN: Web App di Streaming Video
+
+## Piano di Lavoro Completo e Dettagliato
+
+---
+
+## FASE 0 — SETUP AMBIENTE DI SVILUPPO
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 0.1 | Installare Node.js e npm | Installare l'ultima versione LTS di Node.js |
+| 0.2 | Configurare VS Code | Installare le estensioni essenziali (ESLint, Prettier, Copilot, Thunder Client, GitLens) |
+| 0.3 | Installare Git | Setup di Git e configurazione globale (nome, email) |
+| 0.4 | Creare account GitHub | Creare repo remoto per il progetto |
+| 0.5 | Installare PostgreSQL | Setup del database locale |
+| 0.6 | Installare Redis | Setup di Redis per cache e sessioni |
+| 0.7 | Installare FFmpeg | Setup di FFmpeg per transcodifica video |
+| 0.8 | Installare Docker (opzionale ma consigliato) | Per containerizzare i servizi |
+| 0.9 | Creare la struttura cartelle del progetto monorepo | Cartella root con `/frontend`, `/backend`, `/shared`, `/scripts`, `/docs` |
+| 0.10 | Inizializzare il repository Git | Primo commit con `.gitignore`, `README.md`, struttura base |
+
+---
+
+## FASE 1 — BACKEND: SETUP INIZIALE
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 1.1 | Inizializzare progetto Node.js nel backend | `npm init`, configurazione `package.json` |
+| 1.2 | Installare TypeScript e configurare `tsconfig.json` | Setup TypeScript con strict mode |
+| 1.3 | Installare e configurare Express.js | Setup del server HTTP base |
+| 1.4 | Creare il file entry point `server.ts` | Server che ascolta sulla porta 3000 con messaggio di benvenuto |
+| 1.5 | Configurare nodemon / ts-node-dev | Hot reload in sviluppo |
+| 1.6 | Configurare variabili d'ambiente con dotenv | File `.env` e `.env.example` |
+| 1.7 | Creare struttura cartelle backend | `/src/routes`, `/src/controllers`, `/src/models`, `/src/middleware`, `/src/services`, `/src/utils`, `/src/config` |
+| 1.8 | Configurare ESLint + Prettier per il backend | Regole di linting e formattazione coerenti |
+| 1.9 | Creare middleware per error handling globale | Middleware che cattura tutti gli errori e restituisce JSON strutturato |
+| 1.10 | Creare middleware per logging delle richieste | Logger con morgan o winston per ogni richiesta HTTP |
+| 1.11 | Configurare CORS | Middleware CORS per consentire richieste dal frontend |
+| 1.12 | Creare file di configurazione centralizzato | `config.ts` che legge tutte le variabili d'ambiente e le esporta tipizzate |
+
+---
+
+## FASE 2 — DATABASE: SETUP E MODELLI
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 2.1 | Installare Prisma ORM | Setup di Prisma come ORM per PostgreSQL |
+| 2.2 | Configurare connessione a PostgreSQL | Connection string nel `.env`, test connessione |
+| 2.3 | Creare il modello `User` | id, email, password (hash), username, avatar_url, created_at, updated_at |
+| 2.4 | Creare il modello `Profile` | id, user_id (FK), name, avatar_url, is_kids, preferences JSON |
+| 2.5 | Creare il modello `Movie` | id, title, description, release_year, duration_minutes, poster_url, backdrop_url, trailer_url, rating, created_at |
+| 2.6 | Creare il modello `Series` | id, title, description, release_year, poster_url, backdrop_url, rating, total_seasons, created_at |
+| 2.7 | Creare il modello `Season` | id, series_id (FK), season_number, title, description, poster_url |
+| 2.8 | Creare il modello `Episode` | id, season_id (FK), episode_number, title, description, duration_minutes, thumbnail_url |
+| 2.9 | Creare il modello `Genre` | id, name, slug |
+| 2.10 | Creare tabella ponte `MovieGenre` | Relazione many-to-many tra Movie e Genre |
+| 2.11 | Creare tabella ponte `SeriesGenre` | Relazione many-to-many tra Series e Genre |
+| 2.12 | Creare il modello `VideoFile` | id, content_type (movie/episode), content_id, file_path, resolution, codec, bitrate, size_bytes |
+| 2.13 | Creare il modello `Subtitle` | id, video_file_id (FK), language, language_code, file_path |
+| 2.14 | Creare il modello `WatchHistory` | id, profile_id (FK), content_type, content_id, watched_seconds, total_seconds, completed, last_watched_at |
+| 2.15 | Creare il modello `MyList` | id, profile_id (FK), content_type, content_id, added_at |
+| 2.16 | Creare il modello `ContinueWatching` | Vista/query derivata da WatchHistory per contenuti non completati |
+| 2.17 | Creare il modello `Rating` | id, profile_id, content_type, content_id, score (1-5), created_at |
+| 2.18 | Eseguire la prima migration Prisma | `prisma migrate dev` per creare tutte le tabelle |
+| 2.19 | Creare seed script per generi | Popolare la tabella Genre con generi base (Azione, Commedia, Drama, Horror, ecc.) |
+| 2.20 | Creare seed script per dati di test | Film, serie, episodi fittizi per sviluppo |
+
+---
+
+## FASE 3 — BACKEND: AUTENTICAZIONE
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 3.1 | Installare bcrypt e jsonwebtoken | Librerie per hashing password e JWT |
+| 3.2 | Creare servizio di hashing password | Funzioni `hashPassword()` e `comparePassword()` |
+| 3.3 | Creare endpoint `POST /api/auth/register` | Registrazione utente con validazione email, password, username |
+| 3.4 | Creare endpoint `POST /api/auth/login` | Login con email + password, restituisce JWT (access + refresh token) |
+| 3.5 | Creare endpoint `POST /api/auth/refresh` | Refresh del JWT con refresh token |
+| 3.6 | Creare endpoint `POST /api/auth/logout` | Invalidazione del refresh token |
+| 3.7 | Creare middleware `authenticate` | Middleware che verifica il JWT e attacca `req.user` |
+| 3.8 | Creare middleware `authorize` (ruoli) | Middleware per controllare se l'utente è admin o user |
+| 3.9 | Installare e configurare express-validator | Validazione input per tutti gli endpoint auth |
+| 3.10 | Creare endpoint `POST /api/auth/forgot-password` | Invio email con token di reset |
+| 3.11 | Creare endpoint `POST /api/auth/reset-password` | Reset password con token |
+| 3.12 | Creare endpoint `GET /api/auth/me` | Restituisce i dati dell'utente loggato |
+| 3.13 | Rate limiting sugli endpoint auth | Limitare tentativi di login per prevenire brute force |
+
+---
+
+## FASE 4 — BACKEND: API PROFILI UTENTE
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 4.1 | Creare endpoint `GET /api/profiles` | Lista profili dell'utente loggato |
+| 4.2 | Creare endpoint `POST /api/profiles` | Creare un nuovo profilo (max 5 per utente) |
+| 4.3 | Creare endpoint `PUT /api/profiles/:id` | Modificare nome e avatar di un profilo |
+| 4.4 | Creare endpoint `DELETE /api/profiles/:id` | Eliminare un profilo |
+| 4.5 | Creare endpoint `POST /api/profiles/:id/select` | Selezionare profilo attivo (salva in sessione/token) |
+| 4.6 | Creare middleware `requireProfile` | Verifica che un profilo sia stato selezionato prima di accedere al catalogo |
+| 4.7 | Creare sistema avatar predefiniti | Lista di avatar disponibili tra cui scegliere |
+
+---
+
+## FASE 5 — BACKEND: API CATALOGO
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 5.1 | Creare endpoint `GET /api/movies` | Lista film con paginazione, ordinamento, filtri per genere |
+| 5.2 | Creare endpoint `GET /api/movies/:id` | Dettaglio singolo film con generi, video files, sottotitoli |
+| 5.3 | Creare endpoint `GET /api/series` | Lista serie con paginazione, ordinamento, filtri per genere |
+| 5.4 | Creare endpoint `GET /api/series/:id` | Dettaglio serie con stagioni |
+| 5.5 | Creare endpoint `GET /api/series/:id/seasons` | Lista stagioni di una serie |
+| 5.6 | Creare endpoint `GET /api/series/:id/seasons/:seasonNum` | Dettaglio stagione con episodi |
+| 5.7 | Creare endpoint `GET /api/series/:id/seasons/:seasonNum/episodes/:epNum` | Dettaglio singolo episodio |
+| 5.8 | Creare endpoint `GET /api/genres` | Lista di tutti i generi |
+| 5.9 | Creare endpoint `GET /api/genres/:slug/content` | Tutti i contenuti (film + serie) di un genere |
+| 5.10 | Creare endpoint `GET /api/search` | Ricerca full-text su titolo e descrizione di film e serie |
+| 5.11 | Creare endpoint `GET /api/catalog/featured` | Contenuto in evidenza per la hero section (banner principale) |
+| 5.12 | Creare endpoint `GET /api/catalog/trending` | Contenuti più visti/popolari nell'ultima settimana |
+| 5.13 | Creare endpoint `GET /api/catalog/new-releases` | Contenuti aggiunti di recente |
+| 5.14 | Creare endpoint `GET /api/catalog/top-rated` | Contenuti con rating più alto |
+| 5.15 | Creare endpoint `GET /api/catalog/rows` | Endpoint aggregato che restituisce tutte le "righe" della homepage (trending, new, per genere, ecc.) |
+
+---
+
+## FASE 6 — BACKEND: API INTERAZIONI UTENTE
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 6.1 | Creare endpoint `POST /api/watch-history` | Salvare progresso di visione (chiamato periodicamente dal player) |
+| 6.2 | Creare endpoint `GET /api/watch-history` | Cronologia di visione del profilo attivo |
+| 6.3 | Creare endpoint `GET /api/continue-watching` | Lista contenuti iniziati ma non completati |
+| 6.4 | Creare endpoint `POST /api/my-list/:contentType/:contentId` | Aggiungere alla "Mia Lista" |
+| 6.5 | Creare endpoint `DELETE /api/my-list/:contentType/:contentId` | Rimuovere dalla "Mia Lista" |
+| 6.6 | Creare endpoint `GET /api/my-list` | Ottenere la "Mia Lista" del profilo attivo |
+| 6.7 | Creare endpoint `POST /api/ratings` | Dare un voto a un contenuto |
+| 6.8 | Creare endpoint `GET /api/ratings/:contentType/:contentId` | Ottenere il proprio voto per un contenuto |
+| 6.9 | Creare endpoint `DELETE /api/ratings/:contentType/:contentId` | Rimuovere un voto |
+
+---
+
+## FASE 7 — BACKEND: SISTEMA VIDEO / STREAMING
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 7.1 | Creare cartella storage per video | Setup della directory locale per i file video |
+| 7.2 | Creare script FFmpeg per transcodifica in HLS | Script che prende un video e genera segmenti `.ts` + playlist `.m3u8` a più risoluzioni |
+| 7.3 | Creare endpoint `POST /api/admin/upload-video` | Upload di un file video (multipart form data con multer) |
+| 7.4 | Creare servizio di transcodifica asincrona | Job queue (Bull + Redis) che processa i video caricati in background |
+| 7.5 | Creare endpoint per stato transcodifica | `GET /api/admin/transcode-status/:jobId` — stato del job |
+| 7.6 | Creare endpoint `GET /api/stream/:videoFileId/master.m3u8` | Servire la master playlist HLS |
+| 7.7 | Creare endpoint `GET /api/stream/:videoFileId/:resolution/playlist.m3u8` | Servire la playlist per risoluzione specifica |
+| 7.8 | Creare endpoint `GET /api/stream/:videoFileId/:resolution/:segment.ts` | Servire i singoli segmenti video |
+| 7.9 | Creare endpoint `GET /api/stream/:videoFileId/subtitles/:lang.vtt` | Servire file sottotitoli in formato WebVTT |
+| 7.10 | Implementare protezione degli endpoint stream | Verifica token/sessione anche per i contenuti video |
+| 7.11 | Creare endpoint per generare thumbnail da video | Usare FFmpeg per estrarre frame come thumbnail |
+| 7.12 | Supporto adaptive bitrate | Master playlist con varianti a 360p, 480p, 720p, 1080p |
+
+---
+
+## FASE 8 — BACKEND: PANNELLO ADMIN API
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 8.1 | Creare endpoint `POST /api/admin/movies` | Creare un nuovo film |
+| 8.2 | Creare endpoint `PUT /api/admin/movies/:id` | Modificare un film |
+| 8.3 | Creare endpoint `DELETE /api/admin/movies/:id` | Eliminare un film |
+| 8.4 | Creare endpoint `POST /api/admin/series` | Creare una nuova serie |
+| 8.5 | Creare endpoint `PUT /api/admin/series/:id` | Modificare una serie |
+| 8.6 | Creare endpoint `DELETE /api/admin/series/:id` | Eliminare una serie |
+| 8.7 | Creare endpoint `POST /api/admin/seasons` | Creare una stagione |
+| 8.8 | Creare endpoint `POST /api/admin/episodes` | Creare un episodio |
+| 8.9 | Creare endpoint `PUT /api/admin/episodes/:id` | Modificare un episodio |
+| 8.10 | Creare endpoint `DELETE /api/admin/episodes/:id` | Eliminare un episodio |
+| 8.11 | Creare endpoint `POST /api/admin/upload-poster` | Upload immagine poster/backdrop |
+| 8.12 | Creare endpoint `POST /api/admin/upload-subtitle` | Upload file sottotitoli `.srt`/`.vtt` |
+| 8.13 | Creare endpoint `GET /api/admin/users` | Lista utenti con paginazione |
+| 8.14 | Creare endpoint `GET /api/admin/stats` | Statistiche: totale utenti, film, serie, visioni |
+
+---
+
+## FASE 9 — FRONTEND: SETUP INIZIALE
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 9.1 | Creare progetto React con Vite + TypeScript | `npm create vite@latest` con template React + TS |
+| 9.2 | Installare e configurare Tailwind CSS | Setup completo con file di configurazione |
+| 9.3 | Installare React Router v6 | Routing lato client |
+| 9.4 | Installare Axios | Client HTTP per chiamate API |
+| 9.5 | Creare struttura cartelle frontend | `/src/pages`, `/src/components`, `/src/hooks`, `/src/services`, `/src/store`, `/src/types`, `/src/assets`, `/src/utils` |
+| 9.6 | Configurare ESLint + Prettier per il frontend | Regole coerenti con il backend |
+| 9.7 | Creare layout base dell'app | Componente `Layout` con Navbar + contenuto + Footer |
+| 9.8 | Configurare tema colori (dark theme Netflix-style) | Palette scura: sfondo nero/grigio scuro, accento rosso |
+| 9.9 | Creare file di tipi TypeScript condivisi | Interfacce per Movie, Series, Episode, User, Profile, ecc. |
+| 9.10 | Creare servizio API centralizzato (Axios instance) | Instanza Axios con base URL, interceptor per token JWT, gestione errori |
+| 9.11 | Installare e configurare Zustand o Redux Toolkit | State management globale |
+| 9.12 | Creare store per autenticazione | Stato: user, token, isAuthenticated, login(), logout(), ecc. |
+| 9.13 | Creare store per profilo attivo | Stato: profilo selezionato, switch profilo |
+
+---
+
+## FASE 10 — FRONTEND: PAGINE DI AUTENTICAZIONE
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 10.1 | Creare pagina di Landing/Welcome | Pagina iniziale stile Netflix con CTA "Inizia" |
+| 10.2 | Creare pagina di Registrazione | Form con email, username, password, conferma password |
+| 10.3 | Creare validazione form registrazione | Validazione client-side in tempo reale |
+| 10.4 | Creare pagina di Login | Form con email e password |
+| 10.5 | Creare validazione form login | Validazione client-side |
+| 10.6 | Implementare logica di login (collegamento API) | Chiamata API, salvataggio token, redirect |
+| 10.7 | Implementare logica di registrazione (collegamento API) | Chiamata API, auto-login dopo registrazione |
+| 10.8 | Creare pagina Forgot Password | Form con email per richiedere reset |
+| 10.9 | Creare pagina Reset Password | Form con nuova password + token dalla URL |
+| 10.10 | Creare componente `ProtectedRoute` | Wrapper che redirige a login se non autenticato |
+| 10.11 | Creare componente `PublicOnlyRoute` | Wrapper che redirige a home se già autenticato |
+| 10.12 | Implementare auto-login al refresh pagina | Verifica token salvato in localStorage e refresh se scaduto |
+
+---
+
+## FASE 11 — FRONTEND: SELEZIONE PROFILO
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 11.1 | Creare pagina "Chi sta guardando?" | Griglia di profili come Netflix |
+| 11.2 | Creare componente `ProfileCard` | Avatar + nome profilo, cliccabile |
+| 11.3 | Creare componente `AddProfileCard` | Card "+" per aggiungere nuovo profilo |
+| 11.4 | Creare modale/pagina creazione profilo | Form con nome, selezione avatar, flag kids |
+| 11.5 | Creare modale/pagina modifica profilo | Form precompilato per modificare profilo |
+| 11.6 | Creare conferma eliminazione profilo | Modale di conferma prima di eliminare |
+| 11.7 | Collegare selezione profilo allo store globale | Clic su profilo → salva nello store → redirect alla home |
+| 11.8 | Creare griglia di avatar disponibili | Componente per scegliere tra avatar predefiniti |
+
+---
+
+## FASE 12 — FRONTEND: NAVBAR
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 12.1 | Creare componente `Navbar` | Barra superiore fissa con logo, link navigazione |
+| 12.2 | Implementare trasparenza/sfondo dinamico | Navbar trasparente in cima, diventa scura con sfondo allo scroll |
+| 12.3 | Aggiungere link di navigazione | Home, Serie TV, Film, La Mia Lista, Nuovi Arrivi |
+| 12.4 | Creare componente ricerca nella Navbar | Icona lente che si espande in input di ricerca |
+| 12.5 | Creare dropdown profilo nella Navbar | Avatar cliccabile con dropdown: switch profilo, impostazioni, logout |
+| 12.6 | Creare icona notifiche (placeholder) | Icona campanella con badge numerico |
+| 12.7 | Rendere la Navbar responsive (mobile) | Menu hamburger per schermi piccoli |
+
+---
+
+## FASE 13 — FRONTEND: HOMEPAGE
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 13.1 | Creare componente `HeroBanner` | Banner grande in cima con film/serie in evidenza, sfondo backdrop, titolo, descrizione, pulsanti "Riproduci" e "Maggiori Info" |
+| 13.2 | Creare animazione/transizione per HeroBanner | Fade in del testo, possibile rotazione tra più contenuti |
+| 13.3 | Creare componente `ContentRow` | Riga orizzontale scrollabile di poster (es: "Tendenze", "Nuovi Arrivi") |
+| 13.4 | Creare componente `ContentCard` | Singolo poster/thumbnail con hover effect |
+| 13.5 | Implementare hover effect su `ContentCard` | Al passaggio del mouse: ingrandimento, mostra titolo, anno, match %, pulsanti rapidi |
+| 13.6 | Creare componente `ContentCardExpanded` | Versione espansa della card con più dettagli al hover |
+| 13.7 | Implementare scroll orizzontale con frecce | Frecce sinistra/destra per scrollare la riga |
+| 13.8 | Creare la pagina `HomePage` completa | Assembla HeroBanner + multiple ContentRow (trending, new, per genere) |
+| 13.9 | Collegare HomePage alle API | Fetch dei dati dall'endpoint `/api/catalog/rows` |
+| 13.10 | Implementare lazy loading delle righe | Caricare le righe man mano che l'utente scrolla verso il basso |
+| 13.11 | Creare skeleton/placeholder durante il caricamento | Shimmer effect placeholder mentre i dati caricano |
+
+---
+
+## FASE 14 — FRONTEND: PAGINA DETTAGLIO CONTENUTO
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 14.1 | Creare modale/pagina dettaglio film | Backdrop in alto, titolo, anno, durata, rating, descrizione, generi, pulsante Riproduci |
+| 14.2 | Creare modale/pagina dettaglio serie | Come film ma con selettore stagione e lista episodi |
+| 14.3 | Creare componente `EpisodeList` | Lista episodi con thumbnail, titolo, durata, descrizione breve |
+| 14.4 | Creare componente `SeasonSelector` | Dropdown per selezionare la stagione |
+| 14.5 | Creare sezione "Contenuti simili" | Griglia di contenuti correlati (stesso genere) in fondo alla pagina |
+| 14.6 | Creare pulsante "Aggiungi alla mia lista" | Toggle per aggiungere/rimuovere dalla lista con icona + / ✓ |
+| 14.7 | Creare componente di valutazione (rating) | Stelle o pollici per valutare il contenuto |
+| 14.8 | Creare pulsante "Riproduci" e "Riprendi" | Se c'è progresso salvato, mostra "Riprendi da XX:XX" |
+| 14.9 | Collegare pagina dettaglio alle API | Fetch dati da `/api/movies/:id` o `/api/series/:id` |
+
+---
+
+## FASE 15 — FRONTEND: VIDEO PLAYER
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 15.1 | Installare e configurare HLS.js | Libreria per riprodurre stream HLS nel browser |
+| 15.2 | Creare pagina `PlayerPage` a schermo intero | Pagina dedicata alla riproduzione, senza navbar |
+| 15.3 | Creare componente `VideoPlayer` base | Elemento `<video>` con HLS.js collegato alla sorgente |
+| 15.4 | Creare controlli custom: play/pausa | Pulsante centrale e nella barra controlli |
+| 15.5 | Creare controlli custom: barra di avanzamento | Seekbar cliccabile/draggabile con anteprima tempo |
+| 15.6 | Creare controlli custom: volume | Slider volume + pulsante mute |
+| 15.7 | Creare controlli custom: fullscreen | Toggle schermo intero |
+| 15.8 | Creare controlli custom: avanti/indietro 10 secondi | Pulsanti skip con animazione |
+| 15.9 | Creare selettore qualità video | Menu per scegliere risoluzione (Auto, 360p, 480p, 720p, 1080p) |
+| 15.10 | Creare selettore sottotitoli | Menu per attivare/disattivare e scegliere lingua sottotitoli |
+| 15.11 | Creare selettore velocità di riproduzione | Menu: 0.5x, 0.75x, 1x, 1.25x, 1.5x, 2x |
+| 15.12 | Implementare auto-hide dei controlli | Controlli scompaiono dopo 3 secondi di inattività mouse |
+| 15.13 | Implementare scorciatoie da tastiera | Spazio=play/pausa, frecce=seek, F=fullscreen, M=mute |
+| 15.14 | Implementare salvataggio progresso periodico | Ogni 10 secondi invia il progresso all'API `/api/watch-history` |
+| 15.15 | Implementare "prossimo episodio" | Overlay con countdown "Prossimo episodio tra 5s" negli ultimi 30 secondi |
+| 15.16 | Creare pulsante "Torna indietro" | Freccia per tornare alla pagina dettaglio/homepage |
+| 15.17 | Mostrare titolo del contenuto nel player | Titolo film o "Serie S01E03 - Titolo Episodio" in alto |
+| 15.18 | Creare indicatore di buffering | Spinner/animazione durante il caricamento del buffer |
+| 15.19 | Gestire errori di riproduzione | Messaggi di errore user-friendly se lo stream fallisce |
+| 15.20 | Implementare resume dalla posizione salvata | All'apertura del player, partire dall'ultimo secondo salvato |
+
+---
+
+## FASE 16 — FRONTEND: PAGINA RICERCA
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 16.1 | Creare pagina `SearchPage` | Pagina con barra di ricerca prominente e risultati |
+| 16.2 | Implementare ricerca con debounce | Aspettare 300ms dopo l'ultimo tasto prima di chiamare API |
+| 16.3 | Creare griglia risultati ricerca | Mostrare poster dei risultati in griglia responsiva |
+| 16.4 | Gestire stato "nessun risultato" | Messaggio e suggerimenti se la ricerca non produce risultati |
+| 16.5 | Aggiungere filtri per tipo | Toggle: Tutti, Film, Serie TV |
+| 16.6 | Aggiungere filtri per genere | Chip/tag cliccabili per filtrare per genere |
+
+---
+
+## FASE 17 — FRONTEND: PAGINA "LA MIA LISTA"
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 17.1 | Creare pagina `MyListPage` | Griglia di contenuti salvati |
+| 17.2 | Collegare alla API `/api/my-list` | Fetch dei contenuti salvati dal profilo attivo |
+| 17.3 | Implementare rimozione dalla lista | Pulsante per rimuovere con animazione di uscita |
+| 17.4 | Gestire stato lista vuota | Messaggio invito ad aggiungere contenuti |
+
+---
+
+## FASE 18 — FRONTEND: PAGINE DI BROWSE PER CATEGORIA
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 18.1 | Creare pagina `MoviesPage` | Tutti i film con filtri per genere e ordinamento |
+| 18.2 | Creare pagina `SeriesPage` | Tutte le serie con filtri per genere e ordinamento |
+| 18.3 | Creare pagina `NewReleasesPage` | Contenuti aggiunti di recente |
+| 18.4 | Creare pagina `GenrePage` | Contenuti filtrati per genere specifico (URL: `/genre/:slug`) |
+| 18.5 | Implementare infinite scroll o paginazione | Caricare più contenuti man mano che si scrolla |
+| 18.6 | Creare dropdown di ordinamento | Ordina per: Più recenti, A-Z, Rating, Anno |
+
+---
+
+## FASE 19 — FRONTEND: IMPOSTAZIONI UTENTE
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 19.1 | Creare pagina `SettingsPage` | Pagina impostazioni account |
+| 19.2 | Sezione cambio email | Form con verifica password attuale |
+| 19.3 | Sezione cambio password | Form: password attuale, nuova password, conferma |
+| 19.4 | Sezione gestione profili | Link alla pagina di gestione profili |
+| 19.5 | Sezione preferenze di riproduzione | Qualità predefinita, lingua sottotitoli predefinita |
+| 19.6 | Sezione eliminazione account | Con doppia conferma |
+
+---
+
+## FASE 20 — FRONTEND: PANNELLO ADMIN
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 20.1 | Creare layout `AdminLayout` | Layout separato con sidebar di navigazione admin |
+| 20.2 | Creare pagina `AdminDashboard` | Overview con statistiche: utenti totali, film, serie, visioni |
+| 20.3 | Creare pagina gestione film | Tabella con lista film, pulsanti modifica/elimina, pulsante aggiungi |
+| 20.4 | Creare form aggiunta/modifica film | Form completo con tutti i campi del modello Movie + upload poster |
+| 20.5 | Creare pagina gestione serie | Tabella con lista serie |
+| 20.6 | Creare form aggiunta/modifica serie | Form completo con gestione stagioni e episodi |
+| 20.7 | Creare interfaccia gestione stagioni | Aggiungere/modificare/eliminare stagioni di una serie |
+| 20.8 | Creare interfaccia gestione episodi | Aggiungere/modificare/eliminare episodi di una stagione |
+| 20.9 | Creare interfaccia upload video | Upload con progress bar + stato transcodifica |
+| 20.10 | Creare interfaccia upload sottotitoli | Upload file .srt/.vtt con selezione lingua |
+| 20.11 | Creare pagina gestione utenti | Tabella utenti con ricerca e dettagli |
+| 20.12 | Creare pagina gestione generi | CRUD generi |
+
+---
+
+## FASE 21 — RESPONSIVE DESIGN E MOBILE
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 21.1 | Rendere responsive la HomePage | Hero banner adattivo, righe di contenuti scrollabili su mobile |
+| 21.2 | Rendere responsive le ContentCard | Dimensioni adattive, hover effect → tap su mobile |
+| 21.3 | Rendere responsive la pagina dettaglio | Layout a singola colonna su mobile |
+| 21.4 | Rendere responsive il VideoPlayer | Controlli touch-friendly, gesti swipe per seek |
+| 21.5 | Rendere responsive il pannello admin | Tabelle scrollabili, layout adattivo |
+| 21.6 | Rendere responsive tutte le form | Input full-width su mobile |
+| 21.7 | Testare e ottimizzare per tablet | Layout intermedio per iPad e simili |
+| 21.8 | Implementare menu mobile bottom tab | Barra di navigazione inferiore su mobile |
+
+---
+
+## FASE 22 — ANIMAZIONI E POLISH UI
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 22.1 | Installare Framer Motion | Libreria di animazioni per React |
+| 22.2 | Animare transizioni tra pagine | Fade/slide tra le pagine |
+| 22.3 | Animare apertura/chiusura modale dettaglio | Zoom dalla card al modale come Netflix |
+| 22.4 | Animare hover delle ContentCard | Scala, ombra, transizione smooth |
+| 22.5 | Animare i pulsanti e interazioni | Micro-animazioni sui click |
+| 22.6 | Creare loading screen iniziale | Logo animato all'avvio dell'app |
+| 22.7 | Animare le notifiche/toast | Slide in/out per messaggi di feedback |
+| 22.8 | Implementare toast notification system | Sistema globale per notifiche (aggiunto alla lista, errore, ecc.) |
+
+---
+
+## FASE 23 — PERFORMANCE E OTTIMIZZAZIONE
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 23.1 | Implementare lazy loading delle immagini | Poster e backdrop caricati solo quando visibili |
+| 23.2 | Implementare code splitting per route | Ogni pagina caricata on-demand |
+| 23.3 | Ottimizzare bundle size | Analisi con `vite-plugin-visualizer`, rimuovere dipendenze pesanti |
+| 23.4 | Implementare caching delle API con React Query o SWR | Cache intelligente delle risposte API |
+| 23.5 | Ottimizzare immagini | Servire poster in formato WebP con dimensioni multiple |
+| 23.6 | Implementare service worker per caching | Cache offline per asset statici |
+| 23.7 | Comprimere risposte API (gzip/brotli) | Middleware di compressione nel backend |
+| 23.8 | Aggiungere indici database | Indici su campi usati frequentemente nelle query |
+| 23.9 | Implementare Redis caching nel backend | Cache delle query più frequenti (catalogo, trending) |
+| 23.10 | Ottimizzare query Prisma | Evitare N+1, usare `include` e `select` appropriatamente |
+
+---
+
+## FASE 24 — TESTING
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 24.1 | Configurare Jest per il backend | Setup test runner |
+| 24.2 | Scrivere test unitari per i servizi auth | Test registrazione, login, hashing, JWT |
+| 24.3 | Scrivere test unitari per i servizi catalogo | Test query film, serie, ricerca |
+| 24.4 | Scrivere test di integrazione per le API | Test endpoint con database di test |
+| 24.5 | Configurare Vitest per il frontend | Setup test runner per React |
+| 24.6 | Scrivere test per componenti UI critici | VideoPlayer, ContentCard, Navbar, Form auth |
+| 24.7 | Configurare Cypress o Playwright | E2E testing |
+| 24.8 | Scrivere test E2E per flusso di registrazione/login | Test completo dal form alla homepage |
+| 24.9 | Scrivere test E2E per riproduzione video | Test apertura player, controlli, seek |
+| 24.10 | Scrivere test E2E per flusso admin | Test creazione/modifica/eliminazione contenuti |
+
+---
+
+## FASE 25 — SICUREZZA
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 25.1 | Implementare helmet.js | Header di sicurezza HTTP |
+| 25.2 | Proteggere da XSS | Sanitizzazione input, Content Security Policy |
+| 25.3 | Proteggere da CSRF | Token CSRF o SameSite cookies |
+| 25.4 | Proteggere da SQL injection | Verifica che Prisma parametrizzi tutte le query |
+| 25.5 | Implementare rate limiting globale | Limitare richieste per IP |
+| 25.6 | Validare tutti gli input con express-validator | Validazione rigorosa su ogni endpoint |
+| 25.7 | Implementare HTTPS | Certificato SSL (Let's Encrypt in produzione) |
+| 25.8 | Proteggere i video da accesso non autorizzato | Token temporanei per gli URL di streaming |
+| 25.9 | Audit delle dipendenze | `npm audit`, rimuovere pacchetti vulnerabili |
+| 25.10 | Implementare logging di sicurezza | Log tentativi di accesso sospetti |
+
+---
+
+## FASE 26 — DEPLOY E PRODUZIONE
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 26.1 | Creare Dockerfile per il backend | Containerizzare il backend Node.js |
+| 26.2 | Creare Dockerfile per il frontend | Build di produzione servita con nginx |
+| 26.3 | Creare `docker-compose.yml` | Orchestrare backend, frontend, PostgreSQL, Redis |
+| 26.4 | Configurare variabili d'ambiente per produzione | `.env.production` con valori sicuri |
+| 26.5 | Configurare nginx come reverse proxy | Routing: `/api` → backend, `/` → frontend, `/stream` → video files |
+| 26.6 | Scegliere e configurare hosting | VPS (DigitalOcean, Hetzner) o cloud (AWS, GCP) |
+| 26.7 | Configurare dominio e DNS | Dominio personalizzato con record A |
+| 26.8 | Configurare SSL con Let's Encrypt | HTTPS automatico con Certbot |
+| 26.9 | Configurare CI/CD pipeline | GitHub Actions per build, test e deploy automatico |
+| 26.10 | Configurare backup automatico del database | Backup giornaliero di PostgreSQL |
+| 26.11 | Configurare monitoraggio | PM2 o Docker health checks, uptime monitoring |
+| 26.12 | Configurare storage per video in produzione | Volume persistente o object storage (S3-compatibile) |
+
+---
+
+## FASE 27 — FUNZIONALITÀ AVANZATE (BONUS)
+
+| # | Task | Descrizione |
+|---|------|-------------|
+| 27.1 | Implementare sistema di raccomandazioni | Suggerimenti basati su cronologia e rating dell'utente |
+| 27.2 | Implementare notifiche in-app | Nuovi contenuti, nuove stagioni disponibili |
+| 27.3 | Implementare "Watch Party" (visione condivisa) | Sincronizzazione playback via WebSocket tra più utenti |
+| 27.4 | Implementare multi-lingua UI | i18n per italiano, inglese, ecc. |
+| 27.5 | Implementare preview video al hover | Riproduzione automatica di un breve clip al passaggio mouse sulla card |
+| 27.6 | Implementare download per visione offline (PWA) | Service worker per caching video |
+| 27.7 | Implementare sistema di abbonamenti/pagamenti | Integrazione Stripe per piani mensili |
+| 27.8 | Implementare analytics | Tracking visioni, contenuti più popolari, metriche utente |
+| 27.9 | Implementare accessibilità (a11y) | ARIA labels, navigazione da tastiera, screen reader support |
+| 27.10 | Creare app mobile con React Native (wrapper) | Riutilizzo della logica per app mobile nativa |
+
+---
+
+## Riepilogo Totale
+
+| Fase | Contenuto | Task |
+|------|-----------|------|
+| 0 | Setup Ambiente | 10 |
+| 1 | Backend Setup | 12 |
+| 2 | Database e Modelli | 20 |
+| 3 | Autenticazione | 13 |
+| 4 | Profili Utente | 7 |
+| 5 | API Catalogo | 15 |
+| 6 | Interazioni Utente | 9 |
+| 7 | Sistema Video | 12 |
+| 8 | Admin API | 14 |
+| 9 | Frontend Setup | 13 |
+| 10 | Pagine Auth | 12 |
+| 11 | Selezione Profilo | 8 |
+| 12 | Navbar | 7 |
+| 13 | Homepage | 11 |
+| 14 | Dettaglio Contenuto | 9 |
+| 15 | Video Player | 20 |
+| 16 | Ricerca | 6 |
+| 17 | La Mia Lista | 4 |
+| 18 | Browse Categorie | 6 |
+| 19 | Impostazioni | 6 |
+| 20 | Pannello Admin | 12 |
+| 21 | Responsive | 8 |
+| 22 | Animazioni | 8 |
+| 23 | Performance | 10 |
+| 24 | Testing | 10 |
+| 25 | Sicurezza | 10 |
+| 26 | Deploy | 12 |
+| 27 | Bonus Avanzate | 10 |
+| | **TOTALE** | **284** |
+
+---
+
+Hai davanti **284 task** organizzati in **28 fasi** sequenziali. Ogni singolo task è pensato per essere tradotto in un prompt specifico da dare a Copilot.
+
