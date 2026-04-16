@@ -13,21 +13,36 @@ build/
 .env.local
 .env.production
 
-# Storage (video pesanti, non vanno su git)
+# Storage
 storage/videos/*
 storage/posters/*
 storage/subtitles/*
 storage/avatars/*
-!storage/**/.gitkeep
+!storage/videos/.gitkeep
+!storage/posters/.gitkeep
+!storage/subtitles/.gitkeep
+!storage/avatars/.gitkeep
 
-# Log
-*.log
-npm-debug.log*
+# IDE
+.vscode/settings.json
+.idea/
 
 # OS
 .DS_Store
 Thumbs.db
 
-# IDE
-.vscode/
-.idea/
+# Log
+*.log
+npm-debug.log*
+
+# Test
+coverage/
+
+# Docker
+docker-compose.override.yml
+
+# Prisma
+backend/prisma/*.db
+
+# Misc
+*.tsbuildinfo
